@@ -19,6 +19,29 @@ type User struct {
 
 // AuthMiddleware creates a gin middleware for Clerk authentication
 func AuthMiddleware() gin.HandlerFunc {
+	// Get Clerk API key from environment variable
+	clerkAPIKey := os.Getenv("CLERK_API_KEY")
+	if clerkAPIKey == "" {
+		// If the API key is not set, return a middleware that always fails
+		return func(c *gin.Context) {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Clerk API key not configured"})
+			c.Abort()
+			return
+		}
+	}
+
+	// Create Clerk client once when middleware is initialized
+	client, err := clerk.NewClient(clerkAPIKey)
+	if err != nil {
+		// If client creation fails, return a middleware that always fails
+		return func(c *gin.Context) {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize Clerk client"})
+			c.Abort()
+			return
+		}
+	}
+
+	// Return the actual middleware function with the pre-initialized client
 	return func(c *gin.Context) {
 		// Get the Authorization header
 		authHeader := c.GetHeader("Authorization")
@@ -43,23 +66,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Get Clerk API key from environment variable
-		clerkAPIKey := os.Getenv("CLERK_API_KEY")
-		if clerkAPIKey == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Clerk API key not configured"})
-			c.Abort()
-			return
-		}
-
-		// Create Clerk client
-		client, err := clerk.NewClient(clerkAPIKey)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize Clerk client"})
-			c.Abort()
-			return
-		}
-
-		// Verify the session token
+		// Verify the session token using the pre-initialized client
 		claims, err := client.VerifyToken(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("Invalid token: %v", err)})
@@ -67,7 +74,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Get user details from Clerk
+		// Get user details from Clerk using the pre-initialized client
 		userId := claims.Subject
 		if userId == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token does not contain a user ID"})
