@@ -1,7 +1,6 @@
 package frontend
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -19,9 +18,6 @@ type Module struct {
 func NewModule(webModule *web.Module) *Module {
 	// Set HTML renderer on the router
 	webModule.Router().LoadHTMLGlob("web/templates/*.html")
-
-	// Debug log to confirm templates are loaded
-	fmt.Println("HTML templates loaded for frontend module")
 
 	return &Module{
 		web: webModule,
@@ -69,6 +65,5 @@ func (m *Module) dashboardHandler(c *gin.Context) {
 // getClerkPublishableKey returns the Clerk publishable key from environment variables
 func getClerkPublishableKey() string {
 	key := os.Getenv("CLERK_PUBLISHABLE_KEY")
-	fmt.Printf("DEBUG - CLERK_PUBLISHABLE_KEY value: '%s' (length: %d)\n", key, len(key))
 	return key
 }
