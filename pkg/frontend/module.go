@@ -2,8 +2,8 @@ package frontend
 
 import (
 	"net/http"
-	"os"
 
+	"modularApp/pkg/auth"
 	"modularApp/pkg/web"
 
 	"github.com/gin-gonic/gin"
@@ -11,16 +11,18 @@ import (
 
 // Module represents the frontend module
 type Module struct {
-	web *web.Module
+	web  *web.Module
+	auth *auth.Module
 }
 
 // NewModule creates a new frontend module
-func NewModule(webModule *web.Module) *Module {
+func NewModule(webModule *web.Module, authModule *auth.Module) *Module {
 	// Set HTML renderer on the router
 	webModule.Router().LoadHTMLGlob("web/templates/*.html")
 
 	return &Module{
-		web: webModule,
+		web:  webModule,
+		auth: authModule,
 	}
 }
 
@@ -39,7 +41,7 @@ func (m *Module) RegisterRoutes() {
 func (m *Module) homeHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "layout", gin.H{
 		"title":               "Modular App",
-		"clerkPublishableKey": getClerkPublishableKey(),
+		"clerkPublishableKey": m.auth.GetClerkPublishableKey(),
 		"template":            "home.html",
 	})
 }
@@ -48,7 +50,7 @@ func (m *Module) homeHandler(c *gin.Context) {
 func (m *Module) loginHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "layout", gin.H{
 		"title":               "Login - Modular App",
-		"clerkPublishableKey": getClerkPublishableKey(),
+		"clerkPublishableKey": m.auth.GetClerkPublishableKey(),
 		"template":            "login.html",
 	})
 }
@@ -57,13 +59,7 @@ func (m *Module) loginHandler(c *gin.Context) {
 func (m *Module) dashboardHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "layout", gin.H{
 		"title":               "Dashboard - Modular App",
-		"clerkPublishableKey": getClerkPublishableKey(),
+		"clerkPublishableKey": m.auth.GetClerkPublishableKey(),
 		"template":            "dashboard.html",
 	})
-}
-
-// getClerkPublishableKey returns the Clerk publishable key from environment variables
-func getClerkPublishableKey() string {
-	key := os.Getenv("CLERK_PUBLISHABLE_KEY")
-	return key
 }

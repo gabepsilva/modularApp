@@ -2,25 +2,12 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"modularApp/internal/server"
 )
 
 func main() {
-	// Check if Clerk API key is set
-	clerkApiKey := os.Getenv("CLERK_API_KEY")
-	if clerkApiKey == "" {
-		log.Println("Warning: CLERK_API_KEY not set. Authentication will fail.")
-	}
-
-	// Check if Clerk publishable key is set
-	clerkPubKey := os.Getenv("CLERK_PUBLISHABLE_KEY")
-	if clerkPubKey == "" {
-		log.Println("Warning: CLERK_PUBLISHABLE_KEY not set. UI authentication components will not work.")
-	}
-
-	// Create server with all modules
+	// Create server with all modules (Clerk keys are now read in auth module)
 	srv := server.New()
 
 	// Start the server

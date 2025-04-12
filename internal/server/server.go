@@ -26,7 +26,7 @@ func New() *Server {
 	webModule := web.NewModule()
 	authModule := auth.NewModule()
 	itemsModule := items.NewModule(webModule, authModule)
-	frontendModule := frontend.NewModule(webModule)
+	frontendModule := frontend.NewModule(webModule, authModule)
 
 	// Register routes for base modules
 	webModule.RegisterRoutes()

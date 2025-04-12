@@ -3,7 +3,6 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
@@ -18,9 +17,7 @@ type User struct {
 }
 
 // AuthMiddleware creates a gin middleware for Clerk authentication
-func AuthMiddleware() gin.HandlerFunc {
-	// Get Clerk API key from environment variable
-	clerkAPIKey := os.Getenv("CLERK_API_KEY")
+func AuthMiddleware(clerkAPIKey string) gin.HandlerFunc {
 	if clerkAPIKey == "" {
 		// If the API key is not set, return a middleware that always fails
 		return func(c *gin.Context) {
