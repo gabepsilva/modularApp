@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"modularApp/pkg/cache"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,10 +13,11 @@ import (
 type Module struct {
 	clerkAPIKey         string
 	clerkPublishableKey string
+	cacheModule         *cache.Module
 }
 
 // NewModule creates a new auth module
-func NewModule() *Module {
+func NewModule(cacheModule *cache.Module) *Module {
 	// Load keys on initialization
 	apiKey := os.Getenv("CLERK_API_KEY")
 	publishableKey := os.Getenv("CLERK_PUBLISHABLE_KEY")
@@ -22,6 +25,7 @@ func NewModule() *Module {
 	module := &Module{
 		clerkAPIKey:         apiKey,
 		clerkPublishableKey: publishableKey,
+		cacheModule:         cacheModule,
 	}
 
 	// Validate keys and log warnings if needed
@@ -43,7 +47,11 @@ func (m *Module) ValidateKeys() {
 
 // Middleware returns the auth middleware
 func (m *Module) Middleware() gin.HandlerFunc {
-	return AuthMiddleware(m.clerkAPIKey)
+	var jwtCache *cache.JWTCache
+	if m.cacheModule != nil {
+		jwtCache = m.cacheModule.GetJWTCache()
+	}
+	return AuthMiddleware(m.clerkAPIKey, jwtCache)
 }
 
 // GetClerkPublishableKey returns the Clerk publishable key

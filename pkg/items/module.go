@@ -1,7 +1,9 @@
 package items
 
 import (
+	"log"
 	"net/http"
+	"time"
 
 	"modularApp/pkg/auth"
 	"modularApp/pkg/web"
@@ -55,9 +57,13 @@ func (m *Module) getAllItems(c *gin.Context) {
 
 // getItemByID returns a specific item by ID
 func (m *Module) getItemByID(c *gin.Context) {
+
 	id := c.Param("id")
+
 	item, err := m.repo.GetByID(id)
+
 	if err != nil {
+
 		if err == ErrItemNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 			return
@@ -65,13 +71,18 @@ func (m *Module) getItemByID(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, item)
 }
 
 // createItem creates a new item
 func (m *Module) createItem(c *gin.Context) {
+	startTime := time.Now()
+
 	// Get the current user
+	getUserStart := time.Now()
 	user, _ := auth.GetCurrentUser(c)
+	userTime := time.Since(getUserStart)
 
 	var req CreateItemRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -79,7 +90,12 @@ func (m *Module) createItem(c *gin.Context) {
 		return
 	}
 
+	repoStartTime := time.Now()
 	item := m.repo.Create(req.Name, req.Content)
+	repoTime := time.Since(repoStartTime)
+
+	totalTime := time.Since(startTime)
+	log.Printf("ITEMS-CREATE: total=%v, auth=%v, repo=%v", totalTime, userTime, repoTime)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"item":      item,
@@ -89,6 +105,7 @@ func (m *Module) createItem(c *gin.Context) {
 
 // updateItem updates an existing item
 func (m *Module) updateItem(c *gin.Context) {
+	startTime := time.Now()
 	id := c.Param("id")
 
 	var req UpdateItemRequest
@@ -97,8 +114,12 @@ func (m *Module) updateItem(c *gin.Context) {
 		return
 	}
 
+	repoStartTime := time.Now()
 	item, err := m.repo.Update(id, req.Name, req.Content)
+	repoTime := time.Since(repoStartTime)
+
 	if err != nil {
+		log.Printf("ITEMS-UPDATE: error=%v, time=%v", err, time.Since(startTime))
 		if err == ErrItemNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 			return
@@ -106,16 +127,24 @@ func (m *Module) updateItem(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	totalTime := time.Since(startTime)
+	log.Printf("ITEMS-UPDATE: id=%s, total=%v, repo=%v", id, totalTime, repoTime)
 
 	c.JSON(http.StatusOK, item)
 }
 
 // deleteItem deletes an item
 func (m *Module) deleteItem(c *gin.Context) {
+	startTime := time.Now()
 	id := c.Param("id")
 
+	repoStartTime := time.Now()
 	err := m.repo.Delete(id)
+	repoTime := time.Since(repoStartTime)
+
 	if err != nil {
+		log.Printf("ITEMS-DELETE: error=%v, time=%v", err, time.Since(startTime))
 		if err == ErrItemNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 			return
@@ -123,6 +152,9 @@ func (m *Module) deleteItem(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	totalTime := time.Since(startTime)
+	log.Printf("ITEMS-DELETE: id=%s, total=%v, repo=%v", id, totalTime, repoTime)
 
 	c.JSON(http.StatusNoContent, nil)
 }

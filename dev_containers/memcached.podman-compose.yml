@@ -1,0 +1,17 @@
+---
+services:
+  memcached1:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+    environment:
+      - MEMCACHED_MEMORY=128
+
+  memcached2:
+    image: memcached:latest
+    ports:
+      - "11212:11211"
+    environment:
+      - MEMCACHED_MEMORY=128
+
+

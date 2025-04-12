@@ -2,8 +2,11 @@ package auth
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
+
+	"modularApp/pkg/cache"
 
 	"github.com/clerkinc/clerk-sdk-go/clerk"
 	"github.com/gin-gonic/gin"
@@ -17,7 +20,7 @@ type User struct {
 }
 
 // AuthMiddleware creates a gin middleware for Clerk authentication
-func AuthMiddleware(clerkAPIKey string) gin.HandlerFunc {
+func AuthMiddleware(clerkAPIKey string, jwtCache *cache.JWTCache) gin.HandlerFunc {
 	if clerkAPIKey == "" {
 		// If the API key is not set, return a middleware that always fails
 		return func(c *gin.Context) {
@@ -63,15 +66,38 @@ func AuthMiddleware(clerkAPIKey string) gin.HandlerFunc {
 			return
 		}
 
-		// Verify the session token using the pre-initialized client
-		claims, err := client.VerifyToken(token)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("Invalid token: %v", err)})
-			c.Abort()
-			return
+		// Try to get the token from cache first
+		var claims *clerk.SessionClaims
+		var cachedUser *cache.User
+		var err error
+		cacheHit := false
+		userCacheHit := false
+
+		if jwtCache != nil {
+			// Check if token is in cache
+			cachedClaims, user, found := jwtCache.GetToken(token)
+
+			if found {
+				claims = cachedClaims
+				cachedUser = user
+				cacheHit = true
+				userCacheHit = (user != nil)
+			}
 		}
 
-		// Get user details from Clerk using the pre-initialized client
+		// If not in cache, verify the token
+		if claims == nil {
+			claims, err = client.VerifyToken(token)
+
+			if err != nil {
+				log.Printf("TOKEN VERIFICATION FAILED: %v", err)
+				c.JSON(http.StatusUnauthorized, gin.H{"error": fmt.Sprintf("Invalid token: %v", err)})
+				c.Abort()
+				return
+			}
+		}
+
+		// Get user ID from claims
 		userId := claims.Subject
 		if userId == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token does not contain a user ID"})
@@ -79,36 +105,68 @@ func AuthMiddleware(clerkAPIKey string) gin.HandlerFunc {
 			return
 		}
 
-		user, err := client.Users().Read(userId)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to get user details: %v", err)})
-			c.Abort()
-			return
-		}
+		// User object to store in context
+		var user User
 
-		// For safety, handle nil fields
-		emailAddress := ""
-		if len(user.EmailAddresses) > 0 && user.EmailAddresses[0].EmailAddress != "" {
-			emailAddress = user.EmailAddresses[0].EmailAddress
-		}
+		// Get user details from cache or API
+		if userCacheHit && cachedUser != nil {
+			// Use cached user data
+			user = User{
+				ID:    cachedUser.ID,
+				Email: cachedUser.Email,
+				Name:  cachedUser.Name,
+			}
+		} else {
+			// Get user details from Clerk API
+			clerkUser, err := client.Users().Read(userId)
 
-		firstName := ""
-		if user.FirstName != nil {
-			firstName = *user.FirstName
-		}
+			if err != nil {
+				log.Printf("USER FETCH FAILED: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to get user details: %v", err)})
+				c.Abort()
+				return
+			}
 
-		lastName := ""
-		if user.LastName != nil {
-			lastName = *user.LastName
+			// For safety, handle nil fields
+			emailAddress := ""
+			if len(clerkUser.EmailAddresses) > 0 && clerkUser.EmailAddresses[0].EmailAddress != "" {
+				emailAddress = clerkUser.EmailAddresses[0].EmailAddress
+			}
+
+			firstName := ""
+			if clerkUser.FirstName != nil {
+				firstName = *clerkUser.FirstName
+			}
+
+			lastName := ""
+			if clerkUser.LastName != nil {
+				lastName = *clerkUser.LastName
+			}
+
+			// Create user object
+			user = User{
+				ID:    clerkUser.ID,
+				Email: emailAddress,
+				Name:  firstName + " " + lastName,
+			}
+
+			// Cache user data for future requests
+			if jwtCache != nil && !cacheHit {
+				cacheUser := &cache.User{
+					ID:    user.ID,
+					Email: user.Email,
+					Name:  user.Name,
+				}
+
+				err := jwtCache.StoreToken(token, claims, cacheUser)
+				if err != nil {
+					log.Printf("CACHE STORE FAILED: %v", err)
+				}
+			}
 		}
 
 		// Store user in context for use in handlers
-		c.Set("user", User{
-			ID:    user.ID,
-			Email: emailAddress,
-			Name:  firstName + " " + lastName,
-		})
-
+		c.Set("user", user)
 		c.Next()
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"modularApp/pkg/auth"
+	"modularApp/pkg/cache"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,11 @@ func createTestAuthModule() *auth.Module {
 	// We'll use environment variables to control what the auth module returns
 	os.Setenv("CLERK_API_KEY", "test-api-key")
 	os.Setenv("CLERK_PUBLISHABLE_KEY", "test-publishable-key")
-	return auth.NewModule()
+
+	// Create a cache module first
+	cacheModule := cache.NewModule()
+
+	return auth.NewModule(cacheModule)
 }
 
 // TestCreateFrontendModule verifies we can create the frontend module

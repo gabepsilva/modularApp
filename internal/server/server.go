@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"modularApp/pkg/auth"
+	"modularApp/pkg/cache"
 	"modularApp/pkg/frontend"
 	"modularApp/pkg/items"
 	"modularApp/pkg/web"
@@ -17,6 +18,7 @@ type Server struct {
 	authModule     *auth.Module
 	itemsModule    *items.Module
 	frontendModule *frontend.Module
+	cacheModule    *cache.Module
 	httpSrv        *http.Server
 }
 
@@ -24,7 +26,8 @@ type Server struct {
 func New() *Server {
 	// Initialize modules
 	webModule := web.NewModule()
-	authModule := auth.NewModule()
+	cacheModule := cache.NewModule()
+	authModule := auth.NewModule(cacheModule)
 	itemsModule := items.NewModule(webModule, authModule)
 	frontendModule := frontend.NewModule(webModule, authModule)
 
@@ -40,6 +43,7 @@ func New() *Server {
 		authModule:     authModule,
 		itemsModule:    itemsModule,
 		frontendModule: frontendModule,
+		cacheModule:    cacheModule,
 	}
 }
 

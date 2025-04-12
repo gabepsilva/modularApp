@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"modularApp/pkg/auth"
+	"modularApp/pkg/cache"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -21,8 +22,9 @@ func TestAuthMiddlewareIntegration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 
-	// Create auth module
-	authModule := auth.NewModule()
+	// Create cache and auth modules
+	cacheModule := cache.NewModule()
+	authModule := auth.NewModule(cacheModule)
 
 	// Setup a protected route
 	r.GET("/protected", authModule.Middleware(), func(c *gin.Context) {

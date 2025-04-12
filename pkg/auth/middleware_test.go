@@ -48,7 +48,7 @@ func TestAuthMiddlewareWithMissingAPIKey(t *testing.T) {
 	_, r := gin.CreateTestContext(w)
 
 	// Create middleware with empty API key
-	middleware := AuthMiddleware("")
+	middleware := AuthMiddleware("", nil)
 
 	// Apply middleware to a test endpoint
 	r.GET("/test", middleware, func(c *gin.Context) {
@@ -75,7 +75,7 @@ func TestAuthMiddlewareWithMissingAuthHeader(t *testing.T) {
 	_, r := gin.CreateTestContext(w)
 
 	// Create middleware with a test API key
-	middleware := AuthMiddleware("test-api-key")
+	middleware := AuthMiddleware("test-api-key", nil)
 
 	// Apply middleware to a test endpoint
 	r.GET("/test", middleware, func(c *gin.Context) {
@@ -101,7 +101,7 @@ func TestAuthMiddlewareWithInvalidTokenFormat(t *testing.T) {
 	_, r := gin.CreateTestContext(w)
 
 	// Create middleware with a test API key
-	middleware := AuthMiddleware("test-api-key")
+	middleware := AuthMiddleware("test-api-key", nil)
 
 	// Apply middleware to a test endpoint
 	r.GET("/test", middleware, func(c *gin.Context) {
