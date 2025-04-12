@@ -1,0 +1,47 @@
+/* Custom styles for the application */
+
+/* Dashboard styles */
+.copy-cmd {
+    margin-top: 10px;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* Clerk customization */
+.cl-rootBox {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.cl-card {
+    border-radius: 8px;
+}
+
+/* Make the JWT token text area look better */
+#jwt-token {
+    font-family: monospace;
+    font-size: 12px;
+    resize: none;
+}
+
+/* Button styles */
+.btn-outline-primary {
+    transition: all 0.3s;
+}
+
+.btn-outline-primary:hover {
+    transform: translateY(-2px);
+}
+
+/* Card hover effect */
+.card {
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+} 

@@ -1,0 +1,70 @@
+{{ define "dashboard_content" }}
+<div id="auth-required" class="alert alert-warning" style="display: none;">
+    <strong>Authentication Required!</strong> Please <a href="/login">sign in</a> to access this page.
+</div>
+
+<div id="dashboard-content" style="display: none;">
+    <h1 class="mb-4">Welcome to Your Dashboard</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Your Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div id="user-profile">
+                        <p><strong>Name:</strong> <span id="user-name">...</span></p>
+                        <p><strong>Email:</strong> <span id="user-email">...</span></p>
+                        <p><strong>User ID:</strong> <span id="user-id">...</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">API Access</h5>
+                </div>
+                <div class="card-body">
+                    <p>Use your token to access the protected API endpoints:</p>
+                    <div class="mb-3">
+                        <label class="form-label">Your JWT Token:</label>
+                        <textarea id="jwt-token" class="form-control" rows="3" readonly></textarea>
+                    </div>
+                    <button id="copy-token" class="btn btn-sm btn-outline-primary">Copy Token</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">API Examples</h5>
+        </div>
+        <div class="card-body">
+            <p>Use these curl commands to access the protected API endpoints:</p>
+            
+            <div class="bg-light p-3 mb-3 rounded">
+                <h6>Get all items:</h6>
+                <pre id="get-items-cmd">curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/v1/items</pre>
+                <button class="btn btn-sm btn-outline-secondary copy-cmd" data-target="get-items-cmd">Copy</button>
+            </div>
+            
+            <div class="bg-light p-3 mb-3 rounded">
+                <h6>Create a new item:</h6>
+                <pre id="post-item-cmd">curl -X POST -H "Authorization: Bearer YOUR_TOKEN" -H "Content-Type: application/json" -d '{"name":"Test Item","content":"This is a test item."}' http://localhost:8080/api/v1/items</pre>
+                <button class="btn btn-sm btn-outline-secondary copy-cmd" data-target="post-item-cmd">Copy</button>
+            </div>
+            
+            <div class="bg-light p-3 rounded">
+                <h6>Get a specific item:</h6>
+                <pre id="get-item-cmd">curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/v1/items/1</pre>
+                <button class="btn btn-sm btn-outline-secondary copy-cmd" data-target="get-item-cmd">Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ end }} 

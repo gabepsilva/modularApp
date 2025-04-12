@@ -12,6 +12,10 @@ type Module struct {
 // NewModule creates a new web module
 func NewModule() *Module {
 	router := gin.Default()
+
+	// Serve static files
+	router.Static("/static", "./web/static")
+
 	return &Module{
 		router: router,
 	}

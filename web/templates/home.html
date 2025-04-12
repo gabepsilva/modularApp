@@ -1,0 +1,41 @@
+{{ define "home_content" }}
+<div class="px-4 py-5 my-5 text-center">
+    <h1 class="display-5 fw-bold text-body-emphasis">Modular Go Application</h1>
+    <div class="col-lg-8 mx-auto">
+        <p class="lead mb-4">
+            Welcome to our modular Go application with Clerk authentication. This application demonstrates a modular architecture with authentication.
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="/login" class="btn btn-primary btn-lg px-4 gap-3">Sign In</a>
+            <a href="/dashboard" class="btn btn-outline-secondary btn-lg px-4">Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 py-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Modular Architecture</h5>
+                <p class="card-text">This application follows a modular architecture pattern with clear separation of concerns.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Clerk Authentication</h5>
+                <p class="card-text">User authentication and management is handled by Clerk, providing a secure and user-friendly experience.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">REST API</h5>
+                <p class="card-text">The application provides a RESTful API for managing items, protected by authentication.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }} 

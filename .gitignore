@@ -31,4 +31,8 @@ __debug*
 *.log
 
 # OS specific
-.DS_Store 
+.DS_Store
+
+# Environment files
+.env
+.env.local 
