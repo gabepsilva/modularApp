@@ -67,4 +67,67 @@
     </div>
 </div>
 
+<script>
+    window.addEventListener('load', async function() {
+        try {
+            // Wait for Clerk to load properly
+            await Clerk.load();
+            
+            // Check if user is authenticated
+            if (Clerk.user) {
+                // User is logged in, show dashboard content
+                document.getElementById('dashboard-content').style.display = 'block';
+                
+                // Fill in user profile information
+                document.getElementById('user-name').textContent = Clerk.user.firstName + ' ' + Clerk.user.lastName;
+                document.getElementById('user-email').textContent = Clerk.user.primaryEmailAddress.emailAddress;
+                document.getElementById('user-id').textContent = Clerk.user.id;
+                
+                // Get the JWT token
+                const token = await Clerk.session.getToken();
+                document.getElementById('jwt-token').value = token;
+                
+                // Update example commands with the token
+                const tokenPlaceholder = 'YOUR_TOKEN';
+                const commands = document.querySelectorAll('pre[id$="-cmd"]');
+                commands.forEach(cmd => {
+                    cmd.textContent = cmd.textContent.replace(tokenPlaceholder, token);
+                });
+                
+                // Handle copy button clicks
+                document.getElementById('copy-token').addEventListener('click', function() {
+                    const tokenElem = document.getElementById('jwt-token');
+                    tokenElem.select();
+                    document.execCommand('copy');
+                });
+                
+                document.querySelectorAll('.copy-cmd').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const targetId = this.getAttribute('data-target');
+                        const cmdElem = document.getElementById(targetId);
+                        
+                        const tempElem = document.createElement('textarea');
+                        tempElem.value = cmdElem.textContent;
+                        document.body.appendChild(tempElem);
+                        tempElem.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(tempElem);
+                        
+                        this.textContent = 'Copied!';
+                        setTimeout(() => {
+                            this.textContent = 'Copy';
+                        }, 2000);
+                    });
+                });
+            } else {
+                // User is not logged in, show auth required message
+                document.getElementById('auth-required').style.display = 'block';
+            }
+        } catch (error) {
+            console.error("Error initializing Clerk:", error);
+            document.getElementById('auth-required').style.display = 'block';
+        }
+    });
+</script>
+
 {{ end }} 
