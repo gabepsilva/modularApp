@@ -1,6 +1,6 @@
 # Modular Go Application
 
-A modular Go application with a web module using Gin and an items module that implements a REST API, protected by Clerk authentication.
+A modular Go application with a web module using Gin, an items module that implements a REST API, and Clerk authentication with Memcached caching for JWT tokens.
 
 ## Project Structure
 
@@ -9,6 +9,8 @@ modularApp/
 ├── cmd/
 │   └── api/              # Application entry points
 │       └── main.go
+├── dev_containers/
+│   └── memcached.podman-compose.yml # Memcached containers configuration
 ├── internal/
 │   └── server/           # Internal server implementation
 │       └── server.go
@@ -16,6 +18,10 @@ modularApp/
 │   ├── auth/             # Authentication module
 │   │   ├── middleware.go # Clerk authentication middleware
 │   │   └── module.go     # Auth module definition
+│   ├── cache/            # Caching module 
+│   │   ├── module.go     # Cache module definition
+│   │   ├── jwt_cache.go  # JWT token caching
+│   │   └── memcached.go  # Memcached client
 │   ├── frontend/         # Frontend module (web UI)
 │   │   └── module.go     # Frontend routes and handlers 
 │   ├── items/            # Items module (items REST API)
@@ -28,6 +34,7 @@ modularApp/
 │   ├── static/           # Static assets (CSS, JS)
 │   └── templates/        # HTML templates
 ├── go.mod                # Go module file
+├── main.go               # Main application entry point
 ├── .env.example          # Example environment variables
 └── README.md             # This file
 ```
@@ -37,7 +44,8 @@ modularApp/
 This application follows a modular architecture pattern:
 
 - **Web Module**: Core HTTP server and routing functionality using Gin
-- **Auth Module**: Authentication using Clerk
+- **Auth Module**: Authentication using Clerk with JWT token validation
+- **Cache Module**: Caching layer using Memcached for JWT tokens
 - **Items Module**: Business logic for item management, protected by authentication
 - **Frontend Module**: Web UI for user interaction and authentication
 - **Server**: Orchestrates and wires up all modules
@@ -47,27 +55,48 @@ This application follows a modular architecture pattern:
 
 - Go 1.21 or later
 - Clerk account for authentication (https://clerk.dev)
+- Memcached servers (can be run using Podman or Docker)
 
 ## Getting Started
 
 1. Clone the repository
-2. Create a `.env` file from `.env.example` and add your Clerk API keys:
+
+2. Set up Memcached servers:
    ```
-   CLERK_API_KEY=your_clerk_api_key
-   CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+   cd dev_containers
+   podman-compose -f memcached.podman-compose.yml up -d
+   ```
+   
+   Or with Docker:
+   ```
+   cd dev_containers
+   docker-compose -f memcached.podman-compose.yml up -d
    ```
 
-3. Install dependencies:
+3. Create a `.env` file from `.env.example` and add your Clerk API keys:
+   ```
+   # Clerk Authentication
+   CLERK_API_KEY=your_clerk_api_key_here
+   CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here
+
+   # Memcached servers (comma-separated)
+   MEMCACHED_SERVERS=localhost:11211,localhost:11212
+
+   # JWT Cache TTL in seconds (default is 900 seconds for 15 minutes)
+   JWT_CACHE_TTL_SECONDS=900
+   ```
+
+4. Install dependencies:
    ```
    go mod download
    ```
 
-4. Run the application:
+5. Run the application:
    ```
-   go run cmd/api/main.go
+   go run main.go
    ```
 
-5. Access the application in your browser:
+6. Access the application in your browser:
    ```
    http://localhost:8080/
    ```
@@ -84,7 +113,12 @@ This application follows a modular architecture pattern:
 
 ### Authentication
 
-The application uses Clerk for authentication. All item endpoints are protected and require a valid JWT token.
+The application uses Clerk for authentication with Memcached caching for JWT tokens:
+
+1. JWT tokens are validated using Clerk's API
+2. Validated tokens are stored in Memcached for faster subsequent requests
+3. This improves performance by reducing API calls to Clerk
+4. All item endpoints are protected and require a valid JWT token
 
 To access protected endpoints:
 
@@ -139,6 +173,15 @@ curl -X POST -H "Authorization: Bearer your_jwt_token_here" \
   http://localhost:8080/api/v1/items
 ```
 
+## Caching Layer
+
+The application uses Memcached for caching JWT tokens:
+
+1. Two Memcached instances are used for redundancy
+2. JWT tokens are cached with a default 15-minute TTL
+3. Caching improves performance by reducing calls to Clerk API
+4. The cache is load-balanced across available Memcached servers
+
 ## Adding New Modules
 
 To add a new module:
@@ -147,4 +190,12 @@ To add a new module:
 2. Create a module structure similar to the items module
 3. Implement the module interface with dependencies on other modules as needed
 4. Register the module in the server.go file
-5. The module will automatically be initialized when the server starts 
+5. The module will automatically be initialized when the server starts
+
+## Development Notes
+
+- The app uses a modular architecture with DI (Dependency Injection)
+- All modules are initialized in `server.New()` 
+- Environment variables are loaded in each module using direct os.Getenv calls
+- Authentication middleware is created with JWT caching support
+- Memcached is used in a load-balanced setup with multiple servers 
