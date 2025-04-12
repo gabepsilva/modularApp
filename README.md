@@ -198,4 +198,55 @@ To add a new module:
 - All modules are initialized in `server.New()` 
 - Environment variables are loaded in each module using direct os.Getenv calls
 - Authentication middleware is created with JWT caching support
-- Memcached is used in a load-balanced setup with multiple servers 
+- Memcached is used in a load-balanced setup with multiple servers
+
+## TODO and Improvement Ideas
+
+The following are potential improvements and enhancements for the application:
+
+1. **Configuration Management**:
+   - Replace direct `os.Getenv()` calls with a centralized configuration package
+   - Add support for configuration files (YAML/JSON) alongside environment variables
+   - Implement validation for required configuration values
+
+2. **Testing**:
+   - Add unit tests for all modules with good coverage
+   - Implement integration tests for API endpoints
+   - Add mock implementations for external dependencies (Clerk, Memcached)
+
+3. **Logging**:
+   - Replace `log.Printf` with a structured logging package (e.g., zap or logrus)
+   - Add request ID tracking for better request tracing
+   - Implement different log levels based on environment (dev/prod)
+
+4. **Error Handling**:
+   - Create consistent error types and responses across the application
+   - Add more detailed error messages for debugging
+   - Implement proper error propagation from lower layers
+
+5. **Security Enhancements**:
+   - Add rate limiting for API endpoints
+   - Implement CORS configuration for API
+   - Add security headers to all responses
+   - Consider adding a CSP (Content Security Policy)
+
+6. **Performance**:
+   - Implement database connection pooling
+   - Add response compression
+   - Consider implementing request timeouts
+
+7. **Monitoring and Observability**:
+   - Add Prometheus metrics
+   - Implement health check endpoints with detailed component status
+   - Add distributed tracing (OpenTelemetry/Jaeger)
+
+8. **DevOps**:
+   - Create Dockerfile and docker-compose for the entire application
+   - Add CI/CD pipeline configuration
+   - Implement graceful shutdown with proper signal handling
+
+9. **Feature Additions**:
+    - Add user management features
+    - Implement role-based access control
+    - Add pagination, filtering, and sorting for list endpoints
+    - Create a more robust frontend with modern JavaScript framework 
