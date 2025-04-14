@@ -36,14 +36,23 @@ func (m *Module) RegisterRoutes() {
 	itemsGroup := apiGroup.Group("/items", m.authMod.Middleware())
 
 	// Register item routes - all protected by auth
-	itemsGroup.GET("", m.getAllItems)
-	itemsGroup.GET("/:id", m.getItemByID)
-	itemsGroup.POST("", m.createItem)
-	itemsGroup.PUT("/:id", m.updateItem)
-	itemsGroup.DELETE("/:id", m.deleteItem)
+	itemsGroup.GET("", m.getAllItems)       // Get all items
+	itemsGroup.GET("/:id", m.getItemByID)   // Get item by ID
+	itemsGroup.POST("", m.createItem)       // Create a new item
+	itemsGroup.PUT("/:id", m.updateItem)    // Update an existing item
+	itemsGroup.DELETE("/:id", m.deleteItem) // Delete an item
 }
 
 // getAllItems returns all items
+// @Summary Get all items
+// @Description Retrieves a list of all items
+// @Tags items
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} map[string]interface{} "Returns items array and user info"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Router /api/v1/items [get]
 func (m *Module) getAllItems(c *gin.Context) {
 	// Get the current user (authentication is guaranteed by middleware)
 	user, _ := auth.GetCurrentUser(c)
@@ -56,14 +65,24 @@ func (m *Module) getAllItems(c *gin.Context) {
 }
 
 // getItemByID returns a specific item by ID
+// @Summary Get item by ID
+// @Description Retrieves a specific item by its ID
+// @Tags items
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path string true "Item ID"
+// @Success 200 {object} Item
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 404 {object} map[string]string "Item not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/items/{id} [get]
 func (m *Module) getItemByID(c *gin.Context) {
-
 	id := c.Param("id")
 
 	item, err := m.repo.GetByID(id)
 
 	if err != nil {
-
 		if err == ErrItemNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 			return
@@ -76,6 +95,17 @@ func (m *Module) getItemByID(c *gin.Context) {
 }
 
 // createItem creates a new item
+// @Summary Create a new item
+// @Description Creates a new item with the provided details
+// @Tags items
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param item body CreateItemRequest true "Item details"
+// @Success 201 {object} map[string]interface{} "Returns created item and creator ID"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Router /api/v1/items [post]
 func (m *Module) createItem(c *gin.Context) {
 	startTime := time.Now()
 
@@ -104,6 +134,20 @@ func (m *Module) createItem(c *gin.Context) {
 }
 
 // updateItem updates an existing item
+// @Summary Update an existing item
+// @Description Updates an item with the provided ID and details
+// @Tags items
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path string true "Item ID"
+// @Param item body UpdateItemRequest true "Updated item details"
+// @Success 200 {object} Item
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 404 {object} map[string]string "Item not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/items/{id} [put]
 func (m *Module) updateItem(c *gin.Context) {
 	startTime := time.Now()
 	id := c.Param("id")
@@ -135,6 +179,18 @@ func (m *Module) updateItem(c *gin.Context) {
 }
 
 // deleteItem deletes an item
+// @Summary Delete an item
+// @Description Deletes an item with the provided ID
+// @Tags items
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path string true "Item ID"
+// @Success 204 "No Content"
+// @Failure 401 {object} map[string]string "Unauthorized"
+// @Failure 404 {object} map[string]string "Item not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/v1/items/{id} [delete]
 func (m *Module) deleteItem(c *gin.Context) {
 	startTime := time.Now()
 	id := c.Param("id")

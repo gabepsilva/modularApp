@@ -2,6 +2,8 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Module represents the web module of the application
@@ -39,6 +41,9 @@ func (m *Module) RegisterRoutes() {
 	{
 		v1.GET("/ping", m.ping)
 	}
+
+	// Swagger documentation route
+	m.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
 // RegisterHandler allows other modules to register their handlers
@@ -52,6 +57,12 @@ func (m *Module) RegisterGroup(path string) *gin.RouterGroup {
 }
 
 // healthCheck handler for health check endpoint
+// @Summary Server health check
+// @Description Check if the server is running properly
+// @Tags system
+// @Produce json
+// @Success 200 {object} map[string]string "Status healthy"
+// @Router /api/health [get]
 func (m *Module) healthCheck(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": "healthy",
@@ -59,6 +70,12 @@ func (m *Module) healthCheck(c *gin.Context) {
 }
 
 // ping handler for ping endpoint
+// @Summary Ping test
+// @Description Simple ping response for testing
+// @Tags system
+// @Produce json
+// @Success 200 {object} map[string]string "Pong response"
+// @Router /api/v1/ping [get]
 func (m *Module) ping(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "pong",

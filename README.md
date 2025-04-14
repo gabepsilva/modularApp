@@ -158,6 +158,54 @@ The application provides a RESTful API for managing items, protected by Clerk au
 - `GET /api/health` - Health check endpoint
 - `GET /api/v1/ping` - Ping endpoint
 
+## API Documentation with Swagger
+
+The application provides interactive API documentation using Swagger UI:
+
+1. Access Swagger documentation in your browser:
+   ```
+   http://localhost:8080/swagger/index.html
+   ```
+
+2. The Swagger UI allows you to:
+   - View all available API endpoints
+   - See request parameters and response schemas
+   - Test endpoints directly from the browser interface
+   - Understand authentication requirements
+
+The API documentation is automatically generated from code annotations and stays synchronized with the actual implementation. When new endpoints are added or existing ones are modified, the Swagger docs are updated accordingly.
+
+### Using Authentication in Swagger UI
+
+To test protected endpoints in Swagger UI that require Bearer authentication:
+
+1. Click the "Authorize" button at the top right of the Swagger UI (it looks like a lock icon)
+
+2. In the authorization popup dialog:
+   - Enter your token WITH the "Bearer" prefix in the value field
+   - Example: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ...`
+   - Make sure to include the word "Bearer" followed by a space before your actual token
+   
+3. Click "Authorize" and then "Close"
+
+4. Now all your API requests through Swagger UI will include the Bearer token in the Authorization header
+
+5. If you get an "Authorization header is required" error, this typically means:
+   - You haven't authorized with a token yet
+   - The token format is incorrect (missing the "Bearer" prefix)
+   - The token has expired
+
+### Updating Swagger Documentation
+
+If you add new endpoints or modify existing ones:
+
+1. Ensure proper Swagger annotations are added to your handler functions
+2. Regenerate the documentation by running:
+   ```
+   swag init
+   ```
+3. Restart the application to see the updated documentation
+
 ## Testing with cURL
 
 Testing protected endpoints:
